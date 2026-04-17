@@ -231,6 +231,23 @@ io.on('connection', (socket) => {
     const room = rooms.get(currentRoom);
     if (!room) return;
 
+    // Se o dono da sala desconectar, fecha a sala e desconecta todos os sockets dessa sala
+    if (room.ownerId === socket.id) {
+      // Envia evento para todos os sockets da sala informando que a sala foi fechada
+      io.to(currentRoom).emit('room_closed');
+      // Desconecta todos os sockets da sala
+      const clients = Array.from(room.players.keys());
+      for (const clientId of clients) {
+        const clientSocket = io.sockets.sockets.get(clientId);
+        if (clientSocket) {
+          clientSocket.leave(currentRoom);
+          clientSocket.disconnect(true);
+        }
+      }
+      rooms.delete(currentRoom);
+      return;
+    }
+
     room.players.delete(socket.id);
 
     if (room.players.size === 0) {

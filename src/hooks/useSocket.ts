@@ -7,6 +7,7 @@ export function useSocket(roomId: string | undefined, name: string) {
     const { setRoomState, setMyVote } = useRoom();
     const joinedRef = useRef(false);
 
+
     useEffect(() => {
         if (!roomId || !name) return;
 
@@ -22,6 +23,13 @@ export function useSocket(roomId: string | undefined, name: string) {
 
         socket.on('room_update', handleRoomUpdate);
         socket.on('error', handleError);
+
+        // Novo: handler para sala fechada
+        const handleRoomClosed = () => {
+            window.alert('A sala foi fechada pelo dono. Você será redirecionado para a página inicial.');
+            window.location.href = '/';
+        };
+        socket.on('room_closed', handleRoomClosed);
 
         const doJoin = () => {
             socket.emit('join_room', { roomId, name });
@@ -39,6 +47,7 @@ export function useSocket(roomId: string | undefined, name: string) {
             socket.off('room_update', handleRoomUpdate);
             socket.off('error', handleError);
             socket.off('connect', doJoin);
+            socket.off('room_closed', handleRoomClosed);
             joinedRef.current = false;
         };
     }, [roomId, name, setRoomState]);
