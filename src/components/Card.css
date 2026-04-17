@@ -1,0 +1,40 @@
+.card {
+  width: 64px;
+  height: 96px;
+  border-radius: 10px;
+  border: 2px solid var(--color-border);
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  font-size: 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  user-select: none;
+}
+
+.card:hover:not(.card--disabled) {
+  transform: translateY(-6px) scale(1.06);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+  border-color: var(--color-primary);
+}
+
+.card--selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+  transform: translateY(-10px) scale(1.1);
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.45);
+}
+
+.card--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card__value {
+  pointer-events: none;
+}
