@@ -118,7 +118,6 @@ export function Room() {
         <Chat
           roomId={roomState.roomId}
           myId={myId}
-          myName={userName}
           players={roomState.players}
           ownerId={roomState.ownerId}
         />
