@@ -22,7 +22,7 @@ interface ChatProps {
   ownerId: string | null;
 }
 
-export function Chat({ roomId, myId, myName, players, ownerId }: ChatProps) {
+export function Chat({ roomId, myId, players, ownerId }: Omit<ChatProps, 'myName'>) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [unread, setUnread] = useState(0);
