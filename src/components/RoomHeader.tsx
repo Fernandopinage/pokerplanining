@@ -45,7 +45,7 @@ export function RoomHeader({ roomId, onStoriesClick }: RoomHeaderProps) {
     <div className="room-header">
       <div className="room-header__brand">
         <span className="room-header__logo">⚔️</span>
-        <span className="room-header__title">Battle Poker</span>
+        <span className="room-header__title">Poker Planning</span>
       </div>
       <div className="room-header__room">
         <span className="room-header__label">Sala:</span>

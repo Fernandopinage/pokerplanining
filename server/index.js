@@ -225,6 +225,48 @@ roomNsp.on('connection', (socket) => {
     broadcastRoom(roomId);
   });
 
+  socket.on('chat_send', ({ text, toId }) => {
+    if (!hasJoined) return;
+    const r = rooms.get(roomId);
+    if (!r) return;
+    // Owner cannot use chat
+    if (r.ownerId === socket.id) return;
+
+    const safeText = String(text || '').slice(0, 500).trim();
+    if (!safeText) return;
+
+    const recipientId = toId || null;
+    const recipientPlayer = recipientId ? r.players.get(recipientId) : null;
+
+    const msg = {
+      id: require('crypto').randomUUID().slice(0, 8),
+      fromId: socket.id,
+      fromName: playerName,
+      text: safeText,
+      toId: recipientId,
+      toName: recipientPlayer ? recipientPlayer.name : null,
+      isPrivate: !!recipientId,
+      timestamp: Date.now(),
+    };
+
+    const nsp = io.of('/room-' + roomId);
+
+    if (msg.isPrivate) {
+      // Send only to sender and recipient (exclude owner)
+      socket.emit('chat_message', msg);
+      if (recipientId && recipientId !== r.ownerId) {
+        nsp.to(recipientId).emit('chat_message', msg);
+      }
+    } else {
+      // Broadcast to all players except owner
+      for (const [pid] of r.players) {
+        if (pid !== r.ownerId) {
+          nsp.to(pid).emit('chat_message', msg);
+        }
+      }
+    }
+  });
+
   socket.on('leave_room', () => {
     handleLeave();
     socket.disconnect(true);

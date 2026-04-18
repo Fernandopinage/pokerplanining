@@ -78,7 +78,7 @@ export function Home() {
           em equipe, em tempo real.
         </h1>
         <p className="home__subtitle">
-          Battle Poker é uma ferramenta colaborativa e gratuita para equipes ágeis
+          Poker Planning é uma ferramenta colaborativa e gratuita para equipes ágeis
           estimarem histórias de usuário — sem cadastro, sem limites.
         </p>
         <ul className="home__checklist">
@@ -100,7 +100,7 @@ export function Home() {
         <div className="home__card">
           <div className="home__card-header">
             <span className="home__card-logo" aria-hidden="true">⚔️</span>
-            <h2 className="home__card-title">Battle Poker</h2>
+            <h2 className="home__card-title">Poker Planning</h2>
             <p className="home__card-sub">Entre numa sala ou crie uma nova</p>
           </div>
 

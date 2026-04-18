@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Chat } from '../components/Chat';
 import { PlayerList } from '../components/PlayerList';
 import { ResultsSummary } from '../components/ResultsSummary';
 import { RevealButton } from '../components/RevealButton';
@@ -113,6 +114,16 @@ export function Room() {
         onSetActive={setActiveStory}
         onRemove={removeStory}
       />
+      {!isOwner && (
+        <Chat
+          roomId={roomState.roomId}
+          myId={myId}
+          myName={userName}
+          players={roomState.players}
+          ownerId={roomState.ownerId}
+        />
+      )}
+
       <footer className="room-footer">
         <span className="room-footer__text">
           Desenvolvido por Pinagé <span className="room-footer__icon">☠️</span> | V 0.02
