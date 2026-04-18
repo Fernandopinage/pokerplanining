@@ -9,14 +9,14 @@ import { StoryPanel } from '../components/StoryPanel';
 import { VotingBoard } from '../components/VotingBoard';
 import { useRoom } from '../context/RoomContext';
 import { useSocket } from '../hooks/useSocket';
-import { disconnectSocket, getSocket } from '../services/socket';
+import { getSocket } from '../services/socket';
 import './Room.css';
 
 export function Room() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const { roomState, myVote, userName } = useRoom();
-  const { sendVote, revealVotes, resetVotes, addStory, setActiveStory, removeStory } = useSocket(roomId, userName);
+  const { sendVote, revealVotes, resetVotes, addStory, setActiveStory, removeStory, leaveRoom } = useSocket(roomId, userName);
   const myIdRef = useRef<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -28,7 +28,8 @@ export function Room() {
   }, [userName, roomId, navigate]);
 
   useEffect(() => {
-    const socket = getSocket();
+    if (!roomId) return;
+    const socket = getSocket(roomId);
     myIdRef.current = socket.id || '';
     const handleConnect = () => {
       myIdRef.current = socket.id || '';
@@ -37,13 +38,14 @@ export function Room() {
     return () => {
       socket.off('connect', handleConnect);
     };
-  }, []);
+  }, [roomId]);
 
-  // Disconnect and clean up on unmount
+  // Disconnect and clean up on unmount (navigating away)
   useEffect(() => {
     return () => {
-      disconnectSocket();
+      leaveRoom();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!userName) return null;
@@ -60,7 +62,7 @@ export function Room() {
     );
   }
 
-  const myId = getSocket().id || '';
+  const myId = roomId ? (getSocket(roomId).id || '') : '';
   const isOwner = roomState.ownerId === myId;
   const votedCount = roomState.players.filter((p) => p.vote !== null).length;
   const currentStory = roomState.stories.find((s) => s.id === roomState.currentStoryId) ?? null;
