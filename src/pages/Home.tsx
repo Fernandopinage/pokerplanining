@@ -67,90 +67,95 @@ export function Home() {
 
   return (
     <div className="home">
-      <div className="home__hero">
-        <div className="home__logo">⚔️</div>
-        <h1 className="home__brand">Battle Poker</h1>
-        <p className="home__description">
-          Ferramenta gratuita de Planning Poker para equipes ágeis.
-          <br />
-          Estime histórias de usuário de forma colaborativa e eficiente.
+      <div className="home__glow home__glow--tl" aria-hidden="true" />
+      <div className="home__glow home__glow--br" aria-hidden="true" />
+
+      {/* Left: hero */}
+      <div className="home__left">
+        <span className="home__eyebrow">⚔️ Planning Poker Gratuito</span>
+        <h1 className="home__title">
+          Estime <span className="home__title-accent">histórias</span><br />
+          em equipe, em tempo real.
+        </h1>
+        <p className="home__subtitle">
+          Battle Poker é uma ferramenta colaborativa e gratuita para equipes ágeis
+          estimarem histórias de usuário — sem cadastro, sem limites.
         </p>
+        <ul className="home__checklist">
+          <li>Sessões sincronizadas em tempo real via WebSocket</li>
+          <li>Crie ou entre em salas com um único clique</li>
+          <li>Sequência de Fibonacci para estimativas precisas</li>
+          <li>Revele os votos quando o time estiver pronto</li>
+        </ul>
+        <div className="home__badges">
+          <span className="home__badge">⚡ Tempo real</span>
+          <span className="home__badge">🆓 Gratuito</span>
+          <span className="home__badge">🔒 Sem cadastro</span>
+          <span className="home__badge">♾️ Ilimitado</span>
+        </div>
       </div>
 
-      <div className="home__card">
-        <div className="home__tabs">
-          <button
-            className={`home__tab${mode === 'create' ? ' home__tab--active' : ''}`}
-            onClick={() => { setMode('create'); setError(''); }}
-          >
-            Criar sala
-          </button>
-          <button
-            className={`home__tab${mode === 'join' ? ' home__tab--active' : ''}`}
-            onClick={() => { setMode('join'); setError(''); }}
-          >
-            Entrar em sala
-          </button>
-        </div>
-
-        <form className="home__form" onSubmit={handleSubmit}>
-          <div className="home__field">
-            <label className="home__label" htmlFor="name">Seu nome</label>
-            <input
-              id="name"
-              className="home__input"
-              type="text"
-              placeholder="Como você quer ser chamado?"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={30}
-              autoFocus
-            />
+      {/* Right: login card */}
+      <div className="home__right">
+        <div className="home__card">
+          <div className="home__card-header">
+            <span className="home__card-logo" aria-hidden="true">⚔️</span>
+            <h2 className="home__card-title">Battle Poker</h2>
+            <p className="home__card-sub">Entre numa sala ou crie uma nova</p>
           </div>
 
-          {mode === 'join' && (
+          <div className="home__tabs">
+            <button
+              className={`home__tab${mode === 'create' ? ' home__tab--active' : ''}`}
+              onClick={() => { setMode('create'); setError(''); }}
+            >
+              Criar sala
+            </button>
+            <button
+              className={`home__tab${mode === 'join' ? ' home__tab--active' : ''}`}
+              onClick={() => { setMode('join'); setError(''); }}
+            >
+              Entrar em sala
+            </button>
+          </div>
+
+          <form className="home__form" onSubmit={handleSubmit}>
             <div className="home__field">
-              <label className="home__label" htmlFor="roomId">Código da sala</label>
+              <label className="home__label" htmlFor="name">Seu nome</label>
               <input
-                id="roomId"
-                className="home__input home__input--code"
+                id="name"
+                className="home__input"
                 type="text"
-                placeholder="Ex: A1B2C3D4"
-                value={joinRoomId}
-                onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
-                maxLength={8}
+                placeholder="Como você quer ser chamado?"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                maxLength={30}
+                autoFocus
               />
             </div>
-          )}
-
-          {error && <p className="home__error">{error}</p>}
-
-          <button
-            className="btn btn--primary btn--lg home__submit"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? 'Aguarde...' : mode === 'create' ? '🚀 Começar' : '🔗 Entrar'}
-          </button>
-        </form>
-      </div>
-
-      <div className="home__features">
-        <div className="home__feature">
-          <span className="home__feature-icon">⚡</span>
-          <span>Tempo real</span>
-        </div>
-        <div className="home__feature">
-          <span className="home__feature-icon">🆓</span>
-          <span>100% gratuito</span>
-        </div>
-        <div className="home__feature">
-          <span className="home__feature-icon">🔒</span>
-          <span>Sem cadastro</span>
-        </div>
-        <div className="home__feature">
-          <span className="home__feature-icon">♾️</span>
-          <span>Ilimitado</span>
+            {mode === 'join' && (
+              <div className="home__field">
+                <label className="home__label" htmlFor="roomId">Código da sala</label>
+                <input
+                  id="roomId"
+                  className="home__input home__input--code"
+                  type="text"
+                  placeholder="Ex: A1B2C3D4"
+                  value={joinRoomId}
+                  onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
+                  maxLength={8}
+                />
+              </div>
+            )}
+            {error && <p className="home__error">{error}</p>}
+            <button
+              className="btn btn--primary btn--lg home__submit"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? 'Aguarde...' : mode === 'create' ? '🚀 Começar' : '🔗 Entrar'}
+            </button>
+          </form>
         </div>
       </div>
     </div>

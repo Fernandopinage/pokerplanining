@@ -29,7 +29,6 @@
   --color-text-muted: #9ca3af;
 }
 
-@media (prefers-color-scheme: dark) {
 /* ===== Global resets and utilities ===== */
 *, *::before, *::after {
   box-sizing: border-box;

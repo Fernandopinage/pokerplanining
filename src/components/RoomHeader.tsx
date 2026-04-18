@@ -29,11 +29,10 @@ export function RoomHeader({ roomId, onStoriesClick }: RoomHeaderProps) {
     }
   };
 
-  // Theme toggle
-  const [theme, setTheme] = useState(() => {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
-    return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-  });
+  // Theme toggle — initialize from class only (no OS preference mismatch)
+  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
+    document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+  );
 
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
