@@ -7,9 +7,15 @@ interface RoomHeaderProps {
 }
 
 export function RoomHeader({ roomId, onStoriesClick }: RoomHeaderProps) {
+
   const [copied, setCopied] = useState(false);
 
+
+  // Use window.location.origin for both, but allow override via env if needed
   const roomUrl = `${window.location.origin}/room/${roomId}`;
+  // Optionally, you could use an env var for production if needed:
+  // const PUBLIC_URL = import.meta.env.VITE_PUBLIC_URL;
+  // if (!isLocalhost && PUBLIC_URL) roomUrl = `${PUBLIC_URL}/room/${roomId}`;
 
   const handleCopy = async () => {
     try {
