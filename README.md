@@ -1,6 +1,6 @@
-# Battle Poker
+# Poker Planning
 
-Battle Poker é uma plataforma gratuita e moderna para estimativas ágeis usando Planning Poker. Ideal para times de desenvolvimento, squads e empresas que buscam agilidade, transparência e colaboração.
+Poker Planning é uma plataforma gratuita e moderna para estimativas ágeis usando Planning Poker. Ideal para times de desenvolvimento, squads e empresas que buscam agilidade, transparência e colaboração.
 
 ## Funcionalidades
 - Estimativas em tempo real
