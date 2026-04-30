@@ -91,6 +91,28 @@ function initServer() {
     res.json({ exists: rooms.has(roomId) });
   });
 
+  // ADMIN: list all rooms
+  app.get('/api/admin/rooms', (req, res) => {
+    const list = Array.from(rooms.entries()).map(([roomId, r]) => ({
+      roomId,
+      players: r.players.size,
+      revealed: r.revealed,
+      stories: r.stories.length,
+      lastActivityAt: r.lastActivityAt,
+    }));
+    res.json(list);
+  });
+
+  // ADMIN: delete (destroy) a room
+  app.delete('/api/admin/rooms/:roomId', (req, res) => {
+    const { roomId } = req.params;
+    if (!rooms.has(roomId)) {
+      return res.status(404).json({ error: 'Sala não encontrada.' });
+    }
+    destroyRoom(roomId);
+    res.json({ ok: true });
+  });
+
   server = http.createServer(app);
   io = new Server(server, {
     cors: {

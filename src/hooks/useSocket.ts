@@ -7,16 +7,25 @@ export function useSocket(roomId: string | undefined, name: string) {
     const { setRoomState, setMyVote } = useRoom();
     const joinedRef = useRef(false);
     const [connectionError, setConnectionError] = useState(false);
+    const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (!roomId || !name) return;
 
         setConnectionError(false);
+        if (errorTimerRef.current) {
+            clearTimeout(errorTimerRef.current);
+            errorTimerRef.current = null;
+        }
 
         // Each room has its own namespace socket — fully isolated channel
         const socket = getSocket(roomId);
 
         const handleRoomUpdate = (state: RoomState) => {
+            if (errorTimerRef.current) {
+                clearTimeout(errorTimerRef.current);
+                errorTimerRef.current = null;
+            }
             setConnectionError(false);
             setRoomState(state);
         };
@@ -32,7 +41,12 @@ export function useSocket(roomId: string | undefined, name: string) {
 
         const handleConnectError = (err: Error) => {
             console.error('[Socket connect_error]', err.message);
-            setConnectionError(true);
+            // Only flag error after 12 s of continuous failure — socket.io retries automatically
+            if (!errorTimerRef.current) {
+                errorTimerRef.current = setTimeout(() => {
+                    setConnectionError(true);
+                }, 12000);
+            }
         };
 
         socket.on('room_update', handleRoomUpdate);
@@ -40,6 +54,10 @@ export function useSocket(roomId: string | undefined, name: string) {
         socket.on('connect_error', handleConnectError);
 
         const doJoin = () => {
+            if (errorTimerRef.current) {
+                clearTimeout(errorTimerRef.current);
+                errorTimerRef.current = null;
+            }
             setConnectionError(false);
             // roomId comes from the namespace — only name is needed here
             socket.emit('join_room', { name });
@@ -67,6 +85,10 @@ export function useSocket(roomId: string | undefined, name: string) {
             socket.off('error', handleError);
             socket.off('connect_error', handleConnectError);
             socket.off('connect', doJoin);
+            if (errorTimerRef.current) {
+                clearTimeout(errorTimerRef.current);
+                errorTimerRef.current = null;
+            }
             joinedRef.current = false;
         };
     }, [roomId, name, setRoomState]);

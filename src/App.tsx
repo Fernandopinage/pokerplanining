@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
 import { RoomProvider, useRoom } from './context/RoomContext';
+import { Admin } from './pages/Admin';
 import { Home } from './pages/Home';
 import { Room } from './pages/Room';
 
@@ -21,6 +22,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<HomeWithRoomRedirect />} />
       <Route path="/room/:roomId" element={<Room />} />
+      <Route path="/admin" element={<Admin />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
