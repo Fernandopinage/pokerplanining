@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRoom } from '../context/RoomContext';
 import { API_URL } from '../services/socket';
 import './Home.css';
 
 export function Home() {
+  const [searchParams] = useSearchParams();
+  const roomParam = searchParams.get('room') ?? '';
   const [name, setName] = useState('');
-  const [joinRoomId, setJoinRoomId] = useState('');
-  const [mode, setMode] = useState<'create' | 'join'>('create');
+  const [joinRoomId, setJoinRoomId] = useState(roomParam.toUpperCase());
+  const [mode, setMode] = useState<'create' | 'join'>(roomParam ? 'join' : 'create');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { setUserName } = useRoom();
