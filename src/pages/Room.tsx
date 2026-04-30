@@ -16,10 +16,16 @@ import './Room.css';
 export function Room() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
-  const { roomState, myVote, userName } = useRoom();
-  const { sendVote, revealVotes, resetVotes, addStory, setActiveStory, removeStory, leaveRoom } = useSocket(roomId, userName);
+  const { roomState, myVote, userName, clearRoom } = useRoom();
+  const { sendVote, revealVotes, resetVotes, addStory, setActiveStory, removeStory, leaveRoom, connectionError } = useSocket(roomId, userName);
   const myIdRef = useRef<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Clear stale state from a previous room on mount
+  useEffect(() => {
+    clearRoom();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!userName) {
@@ -45,11 +51,31 @@ export function Room() {
   useEffect(() => {
     return () => {
       leaveRoom();
+      clearRoom();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!userName) return null;
+
+  if (connectionError) {
+    return (
+      <div className="room room--loading">
+        <RoomHeader roomId={roomId || ''} />
+        <div className="room__loader">
+          <p style={{ color: 'var(--color-danger, #f87171)', marginBottom: '1rem' }}>
+            Não foi possível conectar ao servidor.
+          </p>
+          <button
+            style={{ padding: '0.5rem 1.5rem', cursor: 'pointer' }}
+            onClick={() => window.location.reload()}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!roomState) {
     return (

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RoomState } from '../context/RoomContext';
 import { useRoom } from '../context/RoomContext';
 import { disconnectSocket, getSocket } from '../services/socket';
@@ -6,14 +6,18 @@ import { disconnectSocket, getSocket } from '../services/socket';
 export function useSocket(roomId: string | undefined, name: string) {
     const { setRoomState, setMyVote } = useRoom();
     const joinedRef = useRef(false);
+    const [connectionError, setConnectionError] = useState(false);
 
     useEffect(() => {
         if (!roomId || !name) return;
+
+        setConnectionError(false);
 
         // Each room has its own namespace socket — fully isolated channel
         const socket = getSocket(roomId);
 
         const handleRoomUpdate = (state: RoomState) => {
+            setConnectionError(false);
             setRoomState(state);
         };
 
@@ -26,10 +30,17 @@ export function useSocket(roomId: string | undefined, name: string) {
             }
         };
 
+        const handleConnectError = (err: Error) => {
+            console.error('[Socket connect_error]', err.message);
+            setConnectionError(true);
+        };
+
         socket.on('room_update', handleRoomUpdate);
         socket.on('error', handleError);
+        socket.on('connect_error', handleConnectError);
 
         const doJoin = () => {
+            setConnectionError(false);
             // roomId comes from the namespace — only name is needed here
             socket.emit('join_room', { name });
             joinedRef.current = true;
@@ -54,6 +65,7 @@ export function useSocket(roomId: string | undefined, name: string) {
             window.removeEventListener('beforeunload', handleBeforeUnload);
             socket.off('room_update', handleRoomUpdate);
             socket.off('error', handleError);
+            socket.off('connect_error', handleConnectError);
             socket.off('connect', doJoin);
             joinedRef.current = false;
         };
@@ -103,5 +115,5 @@ export function useSocket(roomId: string | undefined, name: string) {
         disconnectSocket(roomId);
     }, [roomId]);
 
-    return { sendVote, revealVotes, resetVotes, addStory, setActiveStory, removeStory, leaveRoom };
+    return { sendVote, revealVotes, resetVotes, addStory, setActiveStory, removeStory, leaveRoom, connectionError };
 }
