@@ -8,7 +8,10 @@ let io = null;
 let server = null;
 let initialized = false;
 
-// rooms: Map<roomId, { players, revealed, ownerId, stories, currentStoryId, cleanupTimer }>
+// 8 hours in milliseconds
+const INACTIVITY_TIMEOUT = 8 * 60 * 60 * 1000;
+
+// rooms: Map<roomId, { players, revealed, ownerId, stories, currentStoryId, cleanupTimer, lastActivityAt }>
 const rooms = new Map();
 
 function getRoomState(roomId) {
@@ -33,6 +36,12 @@ function computeScore(players) {
   if (numericVotes.length === 0) return null;
   const avg = Math.round((numericVotes.reduce((a, b) => a + b, 0) / numericVotes.length) * 10) / 10;
   return String(avg);
+}
+
+// Update last activity timestamp for the room
+function touchRoom(roomId) {
+  const r = rooms.get(roomId);
+  if (r) r.lastActivityAt = Date.now();
 }
 
 function broadcastRoom(roomId) {
@@ -71,6 +80,7 @@ function initServer() {
       stories: [],
       currentStoryId: null,
       cleanupTimer: null,
+      lastActivityAt: Date.now(),
     });
     console.log('[Room ' + roomId + '] created');
     res.json({ roomId });
@@ -120,6 +130,7 @@ function initServer() {
       if (!r.ownerId) {
         r.ownerId = socket.id;
       }
+      touchRoom(roomId);
       broadcastRoom(roomId);
       console.log('[Room ' + roomId + '] ' + playerName + ' joined (' + r.players.size + ' players)');
     });
@@ -130,6 +141,7 @@ function initServer() {
       const player = r.players.get(socket.id);
       if (!player) return;
       player.vote = vote;
+      touchRoom(roomId);
       broadcastRoom(roomId);
     });
     socket.on('reveal_votes', () => {
@@ -148,6 +160,7 @@ function initServer() {
           story.score = score !== null ? score : '?';
         }
       }
+      touchRoom(roomId);
       broadcastRoom(roomId);
     });
     socket.on('add_story', ({ title, description }) => {
@@ -174,6 +187,7 @@ function initServer() {
       if (!r.currentStoryId) {
         r.currentStoryId = story.id;
       }
+      touchRoom(roomId);
       broadcastRoom(roomId);
     });
     socket.on('set_active_story', ({ storyId }) => {
@@ -190,6 +204,7 @@ function initServer() {
         return;
       }
       r.currentStoryId = storyId;
+      touchRoom(roomId);
       broadcastRoom(roomId);
     });
     socket.on('remove_story', ({ storyId }) => {
@@ -204,6 +219,7 @@ function initServer() {
       if (r.currentStoryId === storyId) {
         r.currentStoryId = r.stories.length > 0 ? r.stories[r.stories.length - 1].id : null;
       }
+      touchRoom(roomId);
       broadcastRoom(roomId);
     });
     socket.on('reset_votes', () => {
@@ -214,6 +230,7 @@ function initServer() {
       for (const player of r.players.values()) {
         player.vote = null;
       }
+      touchRoom(roomId);
       broadcastRoom(roomId);
     });
     socket.on('chat_send', ({ text, toId }) => {
@@ -223,6 +240,7 @@ function initServer() {
       if (r.ownerId === socket.id) return;
       const safeText = String(text || '').slice(0, 500).trim();
       if (!safeText) return;
+      touchRoom(roomId);
       const recipientId = toId || null;
       const recipientPlayer = recipientId ? r.players.get(recipientId) : null;
       const msg = {
@@ -282,6 +300,17 @@ function initServer() {
       }
     }
   });
+  // Periodic job: destroy rooms inactive for INACTIVITY_TIMEOUT (every 15 minutes)
+  setInterval(() => {
+    const now = Date.now();
+    for (const [roomId, room] of rooms) {
+      if (now - room.lastActivityAt >= INACTIVITY_TIMEOUT) {
+        console.log('[Room ' + roomId + '] expired due to inactivity — destroying');
+        destroyRoom(roomId);
+      }
+    }
+  }, 15 * 60 * 1000);
+
   // In Vercel, we don't call server.listen, but we need to start the server for each request
   server.listen(0, () => {
     // no-op
