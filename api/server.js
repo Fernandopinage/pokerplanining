@@ -341,10 +341,6 @@ function initServer() {
     }
   }, 15 * 60 * 1000);
 
-  // In Vercel, we don't call server.listen, but we need to start the server for each request
-  server.listen(0, () => {
-    // no-op
-  });
 }
 
 module.exports = (req, res) => {
