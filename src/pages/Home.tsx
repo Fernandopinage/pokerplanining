@@ -25,13 +25,16 @@ export function Home() {
 
     let roomId: string | undefined;
     try {
-      const res = await fetch(`${API_URL}/api/rooms`, { method: 'POST' });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(`${API_URL}/api/rooms`, { method: 'POST', signal: controller.signal });
+      clearTimeout(timer);
       if (res.ok) {
         const data = await res.json();
         roomId = data.roomId;
       }
     } catch {
-      // Server unreachable — fall back to client-generated ID;
+      // Server unreachable or timeout — fall back to client-generated ID;
       // the server will auto-create the room on socket connection.
     }
 
@@ -58,7 +61,10 @@ export function Home() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/api/rooms/${joinRoomId.trim().toUpperCase()}`);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(`${API_URL}/api/rooms/${joinRoomId.trim().toUpperCase()}`, { signal: controller.signal });
+      clearTimeout(timer);
       const data = await res.json();
       if (!data.exists) {
         setError('Sala não encontrada. Verifique o código.');
