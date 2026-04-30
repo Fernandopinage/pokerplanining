@@ -26,6 +26,7 @@ export function getSocket(roomId: string): Socket {
     if (!sockets.has(roomId)) {
         const socket = io(`${SERVER_URL}/room-${roomId}`, {
             autoConnect: false,
+            transports: ['websocket', 'polling'],
         });
         sockets.set(roomId, socket);
     }
