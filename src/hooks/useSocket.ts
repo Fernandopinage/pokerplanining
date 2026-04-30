@@ -65,7 +65,7 @@ export function useSocket(roomId: string | undefined, name: string) {
         };
 
         if (!socket.connected) {
-            socket.once('connect', doJoin);
+            socket.on('connect', doJoin);
             socket.connect();
         } else if (!joinedRef.current) {
             doJoin();

@@ -126,19 +126,12 @@ const roomNsp = io.of(/^\/room-[A-Z0-9]{8}$/);
 roomNsp.on('connection', (socket) => {
   const roomId = socket.nsp.name.replace('/room-', '');
 
-  // Auto-create room if it doesn't exist (covers cases where HTTP call failed
-  // and the client generated the roomId locally).
+  // If the room doesn't exist, reject the connection immediately.
+  // The room must be created via POST /api/rooms before anyone can join.
   if (!rooms.has(roomId)) {
-    rooms.set(roomId, {
-      players: new Map(),
-      revealed: false,
-      ownerId: null,
-      stories: [],
-      currentStoryId: null,
-      cleanupTimer: null,
-      lastActivityAt: Date.now(),
-    });
-    console.log('[Room ' + roomId + '] auto-created on socket connection');
+    socket.emit('error', { message: 'Sala não encontrada. Verifique o código.' });
+    socket.disconnect(true);
+    return;
   }
 
   let playerName = null;
@@ -153,7 +146,10 @@ roomNsp.on('connection', (socket) => {
       return;
     }
     const r = rooms.get(roomId);
-    if (!r) return; // should not happen after auto-create
+    if (!r) {
+      socket.emit('error', { message: 'Sala não encontrada. Verifique o código.' });
+      return;
+    }
     if (r.cleanupTimer) {
       clearTimeout(r.cleanupTimer);
       r.cleanupTimer = null;

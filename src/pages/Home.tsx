@@ -32,16 +32,15 @@ export function Home() {
       if (res.ok) {
         const data = await res.json();
         roomId = data.roomId;
+      } else {
+        setError('Erro ao criar sala. Tente novamente.');
+        setLoading(false);
+        return;
       }
     } catch {
-      // Server unreachable or timeout — fall back to client-generated ID;
-      // the server will auto-create the room on socket connection.
-    }
-
-    if (!roomId) {
-      roomId = Array.from({ length: 8 }, () =>
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]
-      ).join('');
+      setError('Não foi possível conectar ao servidor. Verifique se o servidor está rodando.');
+      setLoading(false);
+      return;
     }
 
     setUserName(name.trim());
