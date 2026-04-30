@@ -1,17 +1,21 @@
 import { io, Socket } from 'socket.io-client';
 
-// Determine the server URL dynamically:
+// Determine the server URL for Socket.IO:
 // - If VITE_SERVER_URL is set (production / custom deploy), use it.
-// - Otherwise, connect to port 3001 on the same hostname as the current page.
-//   This handles both localhost and LAN access (e.g. http://192.168.1.5:5173 → http://192.168.1.5:3001).
+// - Otherwise, use the same origin as the page so Vite's dev proxy routes
+//   /socket.io and /api requests to the backend on port 3001 automatically.
 function resolveServerUrl(): string {
     const envUrl = import.meta.env.VITE_SERVER_URL as string | undefined;
     if (envUrl) return envUrl;
-    if (typeof window === 'undefined') return 'http://localhost:3001';
-    return `${window.location.protocol}//${window.location.hostname}:3001`;
+    if (typeof window !== 'undefined') return window.location.origin;
+    return 'http://localhost:3001';
 }
 
 const SERVER_URL = resolveServerUrl();
+
+// REST API base URL – empty string means relative paths, which go through the
+// Vite proxy in development and hit the same-origin server in production.
+export const API_URL = (import.meta.env.VITE_SERVER_URL as string | undefined) ?? '';
 
 // One socket per room, keyed by roomId.
 // Each socket connects to its own namespace (/room-ROOMID) so rooms are
@@ -35,5 +39,3 @@ export function disconnectSocket(roomId: string) {
         sockets.delete(roomId);
     }
 }
-
-export const API_URL = SERVER_URL;
