@@ -21,9 +21,13 @@ export function Room() {
   const myIdRef = useRef<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Clear stale state from a previous room on mount
+  // Clear stale state only if entering a different room than the currently loaded one.
+  // Avoid blanket clearRoom() here — React StrictMode mounts twice in dev, and clearing
+  // after the first mount wipes state that the socket just delivered, causing infinite loading.
   useEffect(() => {
-    clearRoom();
+    if (roomState && roomState.roomId !== roomId) {
+      clearRoom();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

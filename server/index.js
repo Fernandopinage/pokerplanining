@@ -145,7 +145,13 @@ roomNsp.on('connection', (socket) => {
   let hasJoined = false;
 
   socket.on('join_room', ({ name }) => {
-    if (!name || hasJoined) return;
+    if (!name) return;
+    // Re-join from same socket (e.g. React StrictMode double-mount in dev):
+    // just re-broadcast the current state so the client can recover.
+    if (hasJoined) {
+      broadcastRoom(roomId);
+      return;
+    }
     const r = rooms.get(roomId);
     if (!r) return; // should not happen after auto-create
     if (r.cleanupTimer) {
