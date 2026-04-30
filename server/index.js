@@ -359,6 +359,6 @@ setInterval(() => {
 }, 15 * 60 * 1000);
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log('Battle Poker server running on port ' + PORT);
 });

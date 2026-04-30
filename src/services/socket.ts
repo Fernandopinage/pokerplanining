@@ -1,10 +1,17 @@
 import { io, Socket } from 'socket.io-client';
 
-// In development, VITE_SERVER_URL points to the backend directly (http://localhost:3001).
-// In production (Vercel), it is empty so the socket connects to the same origin and
-// the serverless function handles it. Fallback keeps local dev working even when the
-// env var is missing.
-const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'http://localhost:3001';
+// Determine the server URL dynamically:
+// - If VITE_SERVER_URL is set (production / custom deploy), use it.
+// - Otherwise, connect to port 3001 on the same hostname as the current page.
+//   This handles both localhost and LAN access (e.g. http://192.168.1.5:5173 → http://192.168.1.5:3001).
+function resolveServerUrl(): string {
+    const envUrl = import.meta.env.VITE_SERVER_URL as string | undefined;
+    if (envUrl) return envUrl;
+    if (typeof window === 'undefined') return 'http://localhost:3001';
+    return `${window.location.protocol}//${window.location.hostname}:3001`;
+}
+
+const SERVER_URL = resolveServerUrl();
 
 // One socket per room, keyed by roomId.
 // Each socket connects to its own namespace (/room-ROOMID) so rooms are
