@@ -8,8 +8,8 @@ export function Home() {
   const [searchParams] = useSearchParams();
   const roomParam = searchParams.get('room') ?? '';
   const [name, setName] = useState('');
-  const [joinRoomId, setJoinRoomId] = useState(roomParam.toUpperCase());
-  const [mode, setMode] = useState<'create' | 'join'>(roomParam ? 'join' : 'create');
+  const [joinRoomId, setJoinRoomId] = useState('');
+  const [mode, setMode] = useState<'create' | 'join'>('create');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { setUserName } = useRoom();
@@ -48,12 +48,13 @@ export function Home() {
     navigate(`/room/${roomId}`);
   };
 
-  const handleJoin = async () => {
+  const handleJoin = async (roomCode: string) => {
     if (!name.trim()) {
       setError('Por favor, informe seu nome.');
       return;
     }
-    if (!joinRoomId.trim()) {
+    const code = roomCode.trim().toUpperCase();
+    if (!code) {
       setError('Por favor, informe o código da sala.');
       return;
     }
@@ -62,7 +63,7 @@ export function Home() {
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 5000);
-      const res = await fetch(`${API_URL}/api/rooms/${joinRoomId.trim().toUpperCase()}`, { signal: controller.signal });
+      const res = await fetch(`${API_URL}/api/rooms/${code}`, { signal: controller.signal });
       clearTimeout(timer);
       const data = await res.json();
       if (!data.exists) {
@@ -70,7 +71,7 @@ export function Home() {
         return;
       }
       setUserName(name.trim());
-      navigate(`/room/${joinRoomId.trim().toUpperCase()}`);
+      navigate(`/room/${code}`);
     } catch {
       setError('Erro ao entrar na sala. Verifique se o servidor está rodando.');
     } finally {
@@ -80,10 +81,64 @@ export function Home() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === 'create') handleCreate();
-    else handleJoin();
+    if (roomParam) {
+      handleJoin(roomParam);
+    } else if (mode === 'create') {
+      handleCreate();
+    } else {
+      handleJoin(joinRoomId);
+    }
   };
 
+  // ── Simplified join view when arriving via invite link ──────────────────────
+  if (roomParam) {
+    return (
+      <div className="home home--join-only">
+        <div className="home__glow home__glow--tl" aria-hidden="true" />
+        <div className="home__glow home__glow--br" aria-hidden="true" />
+        <div className="home__join-center">
+          <div className="home__card">
+            <div className="home__card-header">
+              <span className="home__card-logo" aria-hidden="true">⚔️</span>
+              <h2 className="home__card-title">Poker Planning</h2>
+              <p className="home__card-sub">Você foi convidado para uma sala</p>
+            </div>
+
+            <div className="home__room-badge">
+              <span className="home__room-badge-label">Código da sala</span>
+              <code className="home__room-badge-code">{roomParam.toUpperCase()}</code>
+            </div>
+
+            <form className="home__form" onSubmit={handleSubmit}>
+              <div className="home__field">
+                <label className="home__label" htmlFor="name">Seu nome</label>
+                <input
+                  id="name"
+                  className="home__input"
+                  type="text"
+                  placeholder="Como você quer ser chamado?"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={30}
+                  autoFocus
+                />
+              </div>
+              {error && <p className="home__error">{error}</p>}
+              <button
+                className="btn btn--primary btn--lg home__submit"
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? 'Aguarde...' : '🔗 Entrar na sala'}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Normal landing page ──────────────────────────────────────────────────────
   return (
     <div className="home">
       <div className="home__glow home__glow--tl" aria-hidden="true" />
