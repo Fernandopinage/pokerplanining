@@ -20,16 +20,28 @@ export function Home() {
     }
     setLoading(true);
     setError('');
+
+    let roomId: string | undefined;
     try {
       const res = await fetch(`${API_URL}/api/rooms`, { method: 'POST' });
-      const data = await res.json();
-      setUserName(name.trim());
-      navigate(`/room/${data.roomId}`);
+      if (res.ok) {
+        const data = await res.json();
+        roomId = data.roomId;
+      }
     } catch {
-      setError('Erro ao criar sala. Verifique se o servidor está rodando.');
-    } finally {
-      setLoading(false);
+      // Server unreachable — fall back to client-generated ID;
+      // the server will auto-create the room on socket connection.
     }
+
+    if (!roomId) {
+      roomId = Array.from({ length: 8 }, () =>
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]
+      ).join('');
+    }
+
+    setUserName(name.trim());
+    setLoading(false);
+    navigate(`/room/${roomId}`);
   };
 
   const handleJoin = async () => {
