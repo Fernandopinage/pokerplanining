@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Chat } from '../components/Chat';
+import { Chat, type ChatHandle } from '../components/Chat';
 import { PlayerList } from '../components/PlayerList';
 import { ResultsSummary } from '../components/ResultsSummary';
 import { RevealButton } from '../components/RevealButton';
@@ -20,6 +20,7 @@ export function Room() {
   const { sendVote, revealVotes, resetVotes, addStory, setActiveStory, removeStory, leaveRoom, connectionError } = useSocket(roomId, userName);
   const myIdRef = useRef<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const chatRef = useRef<ChatHandle>(null);
 
   // Clear stale state only if entering a different room than the currently loaded one.
   // Avoid blanket clearRoom() here — React StrictMode mounts twice in dev, and clearing
@@ -108,6 +109,7 @@ export function Room() {
             players={roomState.players}
             revealed={roomState.revealed}
             myId={myId}
+            onStartDm={(playerId) => chatRef.current?.openDm(playerId)}
           />
         </aside>
 
@@ -146,6 +148,7 @@ export function Room() {
       />
       {!isOwner && (
         <Chat
+          ref={chatRef}
           roomId={roomState.roomId}
           myId={myId}
           players={roomState.players}

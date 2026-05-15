@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { Player } from '../context/RoomContext';
 import { getSocket } from '../services/socket';
 import './Chat.css';
@@ -23,9 +23,14 @@ interface ChatProps {
   ownerId: string | null;
 }
 
+export interface ChatHandle {
+  openDm: (playerId: string) => void;
+}
+
 type TabId = 'global' | string;
 
-export function Chat({ roomId, myId, players, ownerId }: Omit<ChatProps, 'myName'>) {
+export const Chat = forwardRef<ChatHandle, Omit<ChatProps, 'myName'>>(
+  function Chat({ roomId, myId, players, ownerId }, ref) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [unread, setUnread] = useState(0);
@@ -121,6 +126,19 @@ export function Chat({ roomId, myId, players, ownerId }: Omit<ChatProps, 'myName
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [showNewDm]);
+
+  // Expose openDm for external callers (e.g. PlayerList hover button)
+  useImperativeHandle(ref, () => ({
+    openDm: (playerId: string) => {
+      setDmTabs(prev => prev.includes(playerId) ? prev : [...prev, playerId]);
+      setOpen(true);
+      setActiveTab(playerId);
+      setTabUnread(prev => ({ ...prev, [playerId]: 0 }));
+      setEditingId(null);
+      setShowNewDm(false);
+      setTimeout(() => inputRef.current?.focus(), 80);
+    },
+  }));
 
   const handleToggle = () => {
     setOpen(prev => {
@@ -294,6 +312,33 @@ export function Chat({ roomId, myId, players, ownerId }: Omit<ChatProps, 'myName
             )}
           </div>
 
+          {/* Players Online Strip */}
+          {chatPlayers.length > 0 && (
+            <div className="chat-players-strip">
+              <span className="chat-players-strip__label">Online:</span>
+              <div className="chat-players-strip__list">
+                {chatPlayers.map(p => {
+                  const unreadCount = tabUnread[p.id] || 0;
+                  const isActive = activeTab === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      className={`chat-player-pill${isActive ? ' chat-player-pill--active' : ''}${dmTabs.includes(p.id) ? ' chat-player-pill--dm' : ''}`}
+                      onClick={() => handleOpenDm(p.id)}
+                      title={`Conversa privada com ${p.name}`}
+                    >
+                      <span className="chat-player-pill__avatar">{p.name.charAt(0).toUpperCase()}</span>
+                      <span className="chat-player-pill__name">{p.name}</span>
+                      {unreadCount > 0 && (
+                        <span className="chat-player-pill__badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Messages */}
           <div className="chat-panel__messages">
             {visibleMessages.length === 0 && (
@@ -428,4 +473,5 @@ export function Chat({ roomId, myId, players, ownerId }: Omit<ChatProps, 'myName
       )}
     </div>
   );
-}
+  }
+);
