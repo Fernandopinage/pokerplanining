@@ -1,4 +1,4 @@
-    // Editar mensagem do chat
+﻿    // Editar mensagem do chat
     socket.on('chat_edit', ({ id, text }) => {
       if (!hasJoined) return;
       const r = rooms.get(roomId);
@@ -328,6 +328,18 @@ function initServer() {
       // Notifica todos os clientes da sala
       nsp.emit('chat_deleted', { id });
     });
+    // Emoji reactions
+    socket.on('emoji_react', ({ emoji }) => {
+      if (!hasJoined) return;
+      const r = rooms.get(roomId);
+      if (!r) return;
+      const player = r.players.get(socket.id);
+      const senderName = player ? player.name : 'Alguém';
+      const allowed = ['❤️', '👏', '😂', '😢', '😮'];
+      if (!allowed.includes(emoji)) return;
+      io.of('/room-' + roomId).emit('emoji_reaction', { emoji, senderName });
+    });
+
     socket.on('leave_room', () => {
       handleLeave();
       socket.disconnect(true);

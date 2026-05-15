@@ -23,6 +23,13 @@
   font-size: 1.15rem;
   margin: 0 0.2rem;
 }
+
+.room-footer__hash {
+  font-size: 0.78rem;
+  font-family: 'Courier New', Courier, monospace;
+  opacity: 0.55;
+  letter-spacing: 0.04em;
+}
 .room {
   min-height: 100vh;
   display: flex;
