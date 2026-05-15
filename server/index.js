@@ -1,4 +1,18 @@
-﻿const express = require('express');
+﻿  // Editar mensagem do chat
+  socket.on('chat_edit', ({ id, text }) => {
+    if (!hasJoined) return;
+    const r = rooms.get(roomId);
+    if (!r || !r.messages) return;
+    const safeText = String(text || '').slice(0, 500).trim();
+    if (!safeText) return;
+    // Só pode editar a própria mensagem
+    const msg = r.messages.find(m => m.id === id && m.fromId === socket.id);
+    if (!msg) return;
+    msg.text = safeText;
+    const nsp = io.of('/room-' + roomId);
+    nsp.emit('chat_edited', { id, text: safeText });
+  });
+const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
@@ -270,6 +284,8 @@ roomNsp.on('connection', (socket) => {
     broadcastRoom(roomId);
   });
 
+  // Armazenar mensagens no room (em memória)
+  if (!rooms.get(roomId).messages) rooms.get(roomId).messages = [];
   socket.on('chat_send', ({ text, toId }) => {
     if (!hasJoined) return;
     const r = rooms.get(roomId);
@@ -295,6 +311,7 @@ roomNsp.on('connection', (socket) => {
       timestamp: Date.now(),
     };
 
+    r.messages.push(msg);
     const nsp = io.of('/room-' + roomId);
 
     if (msg.isPrivate) {
@@ -311,6 +328,20 @@ roomNsp.on('connection', (socket) => {
         }
       }
     }
+  });
+
+  // Deletar mensagem do chat
+  socket.on('chat_delete', ({ id }) => {
+    if (!hasJoined) return;
+    const r = rooms.get(roomId);
+    if (!r || !r.messages) return;
+    // Só pode deletar a própria mensagem
+    const msgIdx = r.messages.findIndex(m => m.id === id && m.fromId === socket.id);
+    if (msgIdx === -1) return;
+    const [deletedMsg] = r.messages.splice(msgIdx, 1);
+    const nsp = io.of('/room-' + roomId);
+    // Notifica todos os clientes da sala
+    nsp.emit('chat_deleted', { id });
   });
 
   socket.on('leave_room', () => {
