@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Chat, type ChatHandle } from '../components/Chat';
-import { EmojiBar } from '../components/EmojiBar';
+// ...existing code...
 import { PlayerList } from '../components/PlayerList';
 import { ResultsSummary } from '../components/ResultsSummary';
 import { RevealButton } from '../components/RevealButton';
@@ -24,8 +24,7 @@ export function Room() {
   const chatRef = useRef<ChatHandle>(null);
   const senderCountRef = useRef<Record<string, number>>({});
 
-  interface FloatingEmoji { uid: string; emoji: string; senderName: string; x: number; duration: number; }
-  const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
+  // FloatingEmoji removido
 
   // Clear stale state only if entering a different room than the currently loaded one.
   // Avoid blanket clearRoom() here — React StrictMode mounts twice in dev, and clearing
@@ -51,28 +50,11 @@ export function Room() {
     const handleConnect = () => {
       myIdRef.current = socket.id || '';
     };
-    const handleEmojiReaction = ({ emoji, senderName }: { emoji: string; senderName: string }) => {
-      const uid = Math.random().toString(36).slice(2);
-      const x = 5 + Math.random() * 75;
-
-      // Mais emojis enviados pela mesma pessoa = animação mais rápida (mín 1s, máx 6s)
-      const count = senderCountRef.current[senderName] || 0;
-      const duration = Math.max(1, 6 - count);
-
-      senderCountRef.current[senderName] = count + 1;
-      // Decrementa o contador após 8s para resetar a velocidade
-      setTimeout(() => {
-        senderCountRef.current[senderName] = Math.max(0, (senderCountRef.current[senderName] || 1) - 1);
-      }, 8000);
-
-      setFloatingEmojis(prev => [...prev, { uid, emoji, senderName, x, duration }]);
-      setTimeout(() => setFloatingEmojis(prev => prev.filter(e => e.uid !== uid)), duration * 1000 + 150);
-    };
     socket.on('connect', handleConnect);
-    socket.on('emoji_reaction', handleEmojiReaction);
+    // emoji_reaction removido
     return () => {
       socket.off('connect', handleConnect);
-      socket.off('emoji_reaction', handleEmojiReaction);
+      // emoji_reaction removido
     };
   }, [roomId]);
 
@@ -182,19 +164,10 @@ export function Room() {
         />
       )}
 
-      <EmojiBar
-        onSend={(emoji) => getSocket(roomState.roomId).emit('emoji_react', { emoji })}
-      />
+// ...existing code...
 
       {/* Floating emoji overlay */}
-      <div className="emoji-overlay">
-        {floatingEmojis.map(fe => (
-          <div key={fe.uid} className="emoji-float" style={{ left: `${fe.x}%`, animationDuration: `${fe.duration}s` }}>
-            <span className="emoji-float__emoji">{fe.emoji}</span>
-            <span className="emoji-float__name">{fe.senderName}</span>
-          </div>
-        ))}
-      </div>
+      {/* emoji-overlay removido */}
 
       <footer className="room-footer">
         <span className="room-footer__text">
